@@ -37,7 +37,8 @@ if response.status_code == 200: # checa  se a solicitação foi bem sucedida (c�
 else:
     print(f"Erro ao acessar a API: Código {response.status_code}")
 
-# EXEMPLO DE FORMATAÇÃO DO ARQUIVO JSON[
+# EXEMPLO DE FORMATAÇÃO DO ARQUIVO JSON
+# [
 #   {
 #     "codigo_procedimento": "1010101",
 #     "descricao_procedimento": "Consulta Médica",
