@@ -143,3 +143,9 @@ HAVING COUNT(*) > 1;
 ----------------------------------------------------------
 
 -- PROBLEMA 7
+-- atributo multivalorado de procedimento / atendimento médico
+CREATE TABLE diagnostico (
+    codigo_processamento VARCHAR(100) PRIMARY KEY,
+    diagnostico VARCHAR(100) PRIMARY KEY,
+    FOREIGN KEY (codigo_processamento) REFERENCES processamento_medico(codigo_processamento)
+);

@@ -18,16 +18,19 @@ with open(nome_arquivo_csv, newline="", encoding="utf-8") as arquivo_csv:
     leitor_csv = csv.reader(arquivo_csv)
     colunas = next(leitor_csv)  # lê a primeira linha com os nomes das colunas pra definir os atributos
 
-comando_criacao_tabela = f"CREATE TABLE stg_prontuario.procedimentos_medicos ("
+comando_criacao_tabela = f"CREATE TABLE stg_prontuario.procedimento_medico ("
 
-for coluna in colunas:
-    comando_criacao_tabela += f"{coluna} VARCHAR(100), " # adicionando atributos
+comando_criacao_tabela += "codigo_procedimento INT PRIMARY KEY, "  # adicionando a primeira coluna como chave primária por normalmente se tratar do código (importante para o problema 7)
+
+for coluna in colunas[1:]:  # a partir da segunda coluna, pois a primeira é a PRIMARY KEY
+    comando_criacao_tabela += f"{coluna} VARCHAR(100), "  # adicionando atributos
+
 comando_criacao_tabela = comando_criacao_tabela.rstrip(", ") + ");" # removendo a última vírgula e espaço; e adicionando ');' para finalizar a criação da tabela
 cursor.execute(comando_criacao_tabela)
 conexao.commit()
 
 for linha in leitor_csv: # lê linha por linha para inserir os dados
-    comando_insercao_dados = f"INSERT INTO stg_prontuario.procedimentos_medicos ({', '.join(colunas)}) VALUES (" # adicionando os atributos
+    comando_insercao_dados = f"INSERT INTO stg_prontuario.procedimento_medico ({', '.join(colunas)}) VALUES (" # adicionando os atributos
     valores = [f"'{valor}'" for valor in linha]
     comando_insercao_dados += f"{', '.join(valores)});" # adiciona os valores
     cursor.execute(comando_insercao_dados)
