@@ -143,54 +143,88 @@ HAVING COUNT(*) > 1;
 ----------------------------------------------------------
 
 -- PROBLEMA 7 -- consultar diagrama
+
+-- como diagnostico, tipo e data dependem somente do n_protocolo, causa uma
+-- dependência parcial, ferindo a 2FN, assim, é necessário criar uma nova tabela "protocolo"
+
 CREATE TABLE stg_prontuario.atendimento_medico (
     id_paciente INT NOT NULL, -- herda pois entidade fraca
     n_protocolo INT NOT NULL, -- discriminadora
-    tipo CHAR(1),
-    data_atendimento DATE,
     codigo_procedimento VARCHAR(100),  -- chave estrangeira pelo relacionamento "realiza"
     PRIMARY KEY (id_paciente, n_protocolo),
     FOREIGN KEY (id_paciente) REFERENCES stg_prontuario.paciente(id),
     FOREIGN KEY (codigo_procedimento) REFERENCES stg_prontuario.procedimento_medico(codigo_procedimento)
 );
--- atributo multivalorado de atendimento médico
+
+CREATE TABLE stg_prontuario.protocolo (
+    id_paciente INT NOT NULL,
+    n_protocolo INT NOT NULL,
+    tipo CHAR(1),
+    data_atendimento DATE,
+    PRIMARY KEY (id_paciente, n_protocolo),
+    FOREIGN KEY (id_paciente, n_protocolo) REFERENCES stg_prontuario.atendimento_medico(id_paciente, n_protocolo),
+);
+
+-- atributo multivalorado de protocolo
 CREATE TABLE stg_prontuario.diagnostico (
     id_paciente INT NOT NULL,
     n_protocolo INT NOT NULL,
     diagnostico VARCHAR(100) NOT NULL,
     PRIMARY KEY (id_paciente, n_protocolo, diagnostico), 
-    FOREIGN KEY (id_paciente, n_protocolo) REFERENCES stg_prontuario.atendimento_medico(id_paciente, n_protocolo)
+    FOREIGN KEY (id_paciente, n_protocolo) REFERENCES stg_prontuario.protocolo(id_paciente, n_protocolo)
 );
 
 ----------------------------------------------------------
 
 -- PROBLEMA 8
 
-ALTER TABLE stg_prontuario.atendimento_medico
+ALTER TABLE stg_prontuario.protocolo
 ADD CONSTRAINT CK_tipo_atendimento
 CHECK (tipo IN ('I', 'U', 'A'));
 
 -- POVOAMENTO ATENDIMENTO simulação
 -- INSERT INTO stg_prontuario.atendimento_medico
---     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+--     (id_paciente, n_protocolo, codigo_procedimento)
 -- VALUES
---     (1, 1, 'U', '2023-07-31', '1010101');
+--     (1, 1, '1010101');
 -- INSERT INTO stg_prontuario.atendimento_medico
---     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+--     (id_paciente, n_protocolo, codigo_procedimento)
 -- VALUES
---     (2, 2, 'U', '2023-08-01', '2020202');
+--     (2, 2, '2020202');
 -- INSERT INTO stg_prontuario.atendimento_medico
---     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+--     (id_paciente, n_protocolo, codigo_procedimento)
 -- VALUES
---     (3, 3, 'U', '2023-08-02', '3030303 ');
+--     (3, 3, '3030303 ');
 -- INSERT INTO stg_prontuario.atendimento_medico
---     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+--     (id_paciente, n_protocolo, codigo_procedimento)
 -- VALUES
---     (4, 4, 'I', '2023-08-02', '2020202');
+--     (4, 4, '2020202');
 -- INSERT INTO stg_prontuario.atendimento_medico
---     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+--     (id_paciente, n_protocolo, codigo_procedimento)
 -- VALUES
---     (5, 5, 'A', '2023-08-03', '1010101');
+--     (5, 5, '1010101');
+
+-- POVOAMENTO PROTOCOLO simulação
+-- INSERT INTO stg_prontuario.protocolo
+--     (id_paciente, n_protocolo, tipo, data_atendimento)
+-- VALUES
+--     (1, 1, 'U', '2023-07-31');
+-- INSERT INTO stg_prontuario.protocolo
+--     (id_paciente, n_protocolo, tipo, data_atendimento)
+-- VALUES
+--     (2, 2, 'U', '2023-08-01');
+-- INSERT INTO stg_prontuario.protocolo
+--     (id_paciente, n_protocolo, tipo, data_atendimento)
+-- VALUES
+--     (3, 3, 'U', '2023-08-02');
+-- INSERT INTO stg_prontuario.protocolo
+--     (id_paciente, n_protocolo, tipo, data_atendimento)
+-- VALUES
+--     (4, 4, 'I', '2023-08-02');
+-- INSERT INTO stg_prontuario.protocolo
+--     (id_paciente, n_protocolo, tipo, data_atendimento)
+-- VALUES
+--     (5, 5, 'A', '2023-08-03');
 
 -- POVOAMENTO DIAGNOSTICO simulação
 -- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
@@ -215,10 +249,11 @@ CHECK (tipo IN ('I', 'U', 'A'));
 SELECT AVG(qtd_diagnosticos) AS media_diagnosticos_tipo_U
 FROM (
     SELECT COUNT(*) AS qtd_diagnosticos
-    FROM atendimento_medico am
-    INNER JOIN diagnostico d ON am.id_paciente = d.id_paciente AND am.n_protocolo = d.n_protocolo
-    WHERE am.tipo = 'U'
-	GROUP BY am.id_paciente, am.n_protocolo
+    FROM stg_prontuario.diagnostico d
+    INNER JOIN stg_prontuario.protocolo p ON p.n_protocolo = d.n_protocolo AND p.id_paciente = d.id_paciente
+    INNER JOIN stg_prontuario.atendimento_medico a ON p.n_protocolo = a.n_protocolo AND p.id_paciente = a.id_paciente
+    WHERE p.tipo = 'U'
+	GROUP BY p.id_paciente, p.n_protocolo
 );
 
 -- Saída: 2
