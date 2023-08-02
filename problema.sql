@@ -142,10 +142,22 @@ HAVING COUNT(*) > 1;
 
 ----------------------------------------------------------
 
--- PROBLEMA 7
--- atributo multivalorado de procedimento / atendimento médico
-CREATE TABLE diagnostico (
-    codigo_processamento VARCHAR(100) PRIMARY KEY,
-    diagnostico VARCHAR(100) PRIMARY KEY,
-    FOREIGN KEY (codigo_processamento) REFERENCES processamento_medico(codigo_processamento)
+-- PROBLEMA 7 -- consultar diagrama
+CREATE TABLE stg_prontuario.atendimento_medico (
+    id_paciente INT NOT NULL, -- herda pois entidade fraca
+    n_protocolo INT NOT NULL, -- discriminadora
+    tipo CHAR(1),
+    data_atendimento DATE,
+    codigo_procedimento VARCHAR(100),  -- chave estrangeira pelo relacionamento "realiza"
+    PRIMARY KEY (id_paciente, n_protocolo),
+    FOREIGN KEY (id_paciente) REFERENCES stg_prontuario.paciente(id),
+    FOREIGN KEY (codigo_procedimento) REFERENCES stg_prontuario.procedimento_medico(codigo_procedimento)
+);
+-- atributo multivalorado de atendimento médico
+CREATE TABLE stg_prontuario.diagnostico (
+    id_paciente INT NOT NULL,
+    n_protocolo INT NOT NULL,
+    diagnostico VARCHAR(100) NOT NULL,
+    PRIMARY KEY (id_paciente, n_protocolo, diagnostico), 
+    FOREIGN KEY (id_paciente, n_protocolo) REFERENCES stg_prontuario.atendimento_medico(id_paciente, n_protocolo)
 );

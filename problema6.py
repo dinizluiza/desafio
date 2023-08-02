@@ -20,7 +20,7 @@ if response.status_code == 200: # checa  se a solicitação foi bem sucedida (c�
 
     comando_criacao_tabela = f"CREATE TABLE stg_prontuario.procedimentos_medicos (" 
     colunas = list(procedimentos_medicos[0].keys())  # as chaves do primeiro dicionário são as colunas
-    comando_criacao_tabela += "codigo_procedimento INT PRIMARY KEY, " # adicionando a primeira coluna como chave primária por normalmente se tratar do código (importante para o problema 7)
+    comando_criacao_tabela += "codigo_procedimento INT PRIMARY KEY, " # adicionando a primeira coluna como chave primária por normalmente se tratar do código
     for coluna in colunas[1:]: # a partir da segunda coluna, pois a primeira é a PRIMARY KEY
         comando_criacao_tabela += f"{coluna} VARCHAR(100), "  # adicionando atributos
     comando_criacao_tabela = comando_criacao_tabela.rstrip(", ") + ");" # removendo a última vírgula e espaço; e adicionando ');' para finalizar a criação da tabela

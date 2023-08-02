@@ -20,7 +20,7 @@ with open(nome_arquivo_csv, newline="", encoding="utf-8") as arquivo_csv:
 
 comando_criacao_tabela = f"CREATE TABLE stg_prontuario.procedimento_medico ("
 
-comando_criacao_tabela += "codigo_procedimento INT PRIMARY KEY, "  # adicionando a primeira coluna como chave primária por normalmente se tratar do código (importante para o problema 7)
+comando_criacao_tabela += "codigo_procedimento INT PRIMARY KEY, "  # adicionando a primeira coluna como chave primária por normalmente se tratar do código
 
 for coluna in colunas[1:]:  # a partir da segunda coluna, pois a primeira é a PRIMARY KEY
     comando_criacao_tabela += f"{coluna} VARCHAR(100), "  # adicionando atributos
