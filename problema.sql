@@ -1,9 +1,5 @@
 -- SQL SERVER
 
--- Quando há versão 1 e versão 2, são formas diferentes de resolver
--- aquele problema/trecho de código específico. Não é para interpretar todos
--- os "versão 1" como um documento completo e "versão 2" como outro.
-
 -- PROBLEMA 1 e 2
 
 CREATE DATABASE hospital_staging;
@@ -84,15 +80,15 @@ VALUES
 CREATE SCHEMA hospital_staging.stg_prontuario;
 
 -- VERSÃO 1
--- CREATE TABLE stg_prontuario.paciente AS
---     SELECT *
---     FROM stg_hospital_a.paciente
---     UNION ALL
---     SELECT *
---     FROM stg_hospital_b.paciente
---     UNION ALL
---     SELECT *
---     FROM stg_hospital_c.paciente;
+CREATE TABLE stg_prontuario.paciente AS
+    SELECT *
+    FROM stg_hospital_a.paciente
+    UNION ALL
+    SELECT *
+    FROM stg_hospital_b.paciente
+    UNION ALL
+    SELECT *
+    FROM stg_hospital_c.paciente;
 -- /VERSÃO 1
 
 -- VERSÃO 2
@@ -127,6 +123,8 @@ FROM stg_prontuario.paciente
 GROUP BY nome, dt_nascimento, cpf, nome_mae
 HAVING COUNT(*) > 1;
 
+-- Saída: Paciente B1	01-JAN-90	12345678901	Mãe B1
+
 ----------------------------------------------------------
 
 -- PROBLEMA 4
@@ -135,6 +133,8 @@ SELECT nome, dt_nascimento, cpf, nome_mae, MAX(dt_atualizacao)
 FROM stg_prontuario.paciente
 GROUP BY nome, dt_nascimento, cpf, nome_mae
 HAVING COUNT(*) > 1;
+
+-- Saída: Paciente B1	01-JAN-90	12345678901	Mãe B1	02-JAN-90
 
 ----------------------------------------------------------
 
@@ -161,3 +161,64 @@ CREATE TABLE stg_prontuario.diagnostico (
     PRIMARY KEY (id_paciente, n_protocolo, diagnostico), 
     FOREIGN KEY (id_paciente, n_protocolo) REFERENCES stg_prontuario.atendimento_medico(id_paciente, n_protocolo)
 );
+
+----------------------------------------------------------
+
+-- PROBLEMA 8
+
+ALTER TABLE stg_prontuario.atendimento_medico
+ADD CONSTRAINT CK_tipo_atendimento
+CHECK (tipo IN ('I', 'U', 'A'));
+
+-- POVOAMENTO ATENDIMENTO simulação
+-- INSERT INTO stg_prontuario.atendimento_medico
+--     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+-- VALUES
+--     (1, 1, 'U', '2023-07-31', '1010101');
+-- INSERT INTO stg_prontuario.atendimento_medico
+--     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+-- VALUES
+--     (2, 2, 'U', '2023-08-01', '2020202');
+-- INSERT INTO stg_prontuario.atendimento_medico
+--     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+-- VALUES
+--     (3, 3, 'U', '2023-08-02', '3030303 ');
+-- INSERT INTO stg_prontuario.atendimento_medico
+--     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+-- VALUES
+--     (4, 4, 'I', '2023-08-02', '2020202');
+-- INSERT INTO stg_prontuario.atendimento_medico
+--     (id_paciente, n_protocolo, tipo, data_atendimento, codigo_procedimento)
+-- VALUES
+--     (5, 5, 'A', '2023-08-03', '1010101');
+
+-- POVOAMENTO DIAGNOSTICO simulação
+-- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
+-- VALUES
+--     (1, 1, 'Gripe');
+-- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
+-- VALUES
+--     (1, 1, 'Febre');
+-- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
+-- VALUES
+--     (2, 2, 'Dor de Cabeça');
+-- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
+-- VALUES
+--     (3, 3, 'Alergia');
+-- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
+-- VALUES
+--     (3, 3, 'Rinite');
+-- INSERT INTO stg_prontuario.diagnostico (id_paciente, n_protocolo, diagnostico)
+-- VALUES
+--     (3, 3, 'Espirros');
+
+SELECT AVG(qtd_diagnosticos) AS media_diagnosticos_tipo_U
+FROM (
+    SELECT COUNT(*) AS qtd_diagnosticos
+    FROM atendimento_medico am
+    INNER JOIN diagnostico d ON am.id_paciente = d.id_paciente AND am.n_protocolo = d.n_protocolo
+    WHERE am.tipo = 'U'
+	GROUP BY am.id_paciente, am.n_protocolo
+);
+
+-- Saída: 2
